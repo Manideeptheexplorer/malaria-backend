@@ -28,8 +28,8 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p uploads temp models
 
-# Expose the port
-EXPOSE $PORT
+# Expose the correct port
+EXPOSE 10000
 
 # Command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
