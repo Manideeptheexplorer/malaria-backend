@@ -1,8 +1,8 @@
 services:
   - type: web
     name: malaria-detection-api
-    env: docker  # ✅ Use docker since you have Dockerfile
-    repo: https://github.com/YOUR_USERNAME/YOUR_REPO
-    branch: main
-    rootDir: backend  # adjust if your Dockerfile is inside backend/
+    env: docker  # Use Docker environment
+    repo: https://github.com/Manideeptheexplorer/malaria-backend
+    branch: main  # or whatever branch you're deploying from
+    rootDir: backend  # this is where your Dockerfile is
     region: oregon
