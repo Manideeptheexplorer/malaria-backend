@@ -67,4 +67,7 @@ temp/
 *.tiff
 *.bmp
 *.gif
-*.webp 
+*.webp
+
+Dockerfile
+.dockerignore
