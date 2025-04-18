@@ -36,11 +36,13 @@ COPY . .
 COPY models/best.pt /app/models/best.pt
 
 # Expose the port
-EXPOSE $PORT
+EXPOSE 10000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:$PORT/ || exit 1
 
 # Command to run the application
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+# CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+CMD sh -c "uvicorn main:app --host 0.0.0.0 --port $PORT"
+
