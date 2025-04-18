@@ -6,3 +6,17 @@ services:
     branch: main  # or whatever branch you're deploying from
     rootDir: backend  # this is where your Dockerfile is
     region: oregon
+    plan: starter
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PATH
+        value: /app/models/best.pt
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: TEMP_DIR
+        value: /app/temp
+      - key: PORT
+        value: 10000
+    healthCheckPath: /
+    autoDeploy: true

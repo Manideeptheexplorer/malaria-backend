@@ -18,17 +18,75 @@ from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.batchnorm import BatchNorm2d
 from torch.nn.modules.upsampling import Upsample
+import uvicorn
+from datetime import datetime
+import logging
 
-app = FastAPI()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Environment variables
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+MODEL_PATH = os.getenv("MODEL_PATH", "./models/best.pt")
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
+TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
+PORT = int(os.getenv("PORT", 10000))
+
+# Create necessary directories
+Path(UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
+Path(os.path.dirname(MODEL_PATH)).mkdir(parents=True, exist_ok=True)
+
+app = FastAPI(
+    title="Malaria Detection API",
+    description="API for detecting malaria in blood cell images",
+    version="1.0.0"
+)
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with your frontend URL
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global model variable
+model = None
+
+def load_model():
+    """Load the model with error handling"""
+    global model
+    try:
+        if not os.path.exists(MODEL_PATH):
+            logger.error(f"Model file not found at {MODEL_PATH}")
+            return False
+        
+        logger.info(f"Loading model from {MODEL_PATH}")
+        model = YOLO(MODEL_PATH)
+        logger.info("Model loaded successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Error loading model: {str(e)}")
+        return False
+
+@app.on_event("startup")
+async def startup_event():
+    """Load model on startup"""
+    if not load_model():
+        logger.error("Failed to load model on startup")
+
+@app.get("/")
+async def root():
+    """Health check endpoint"""
+    return {
+        "message": "Malaria Detection API is running",
+        "model_loaded": model is not None,
+        "environment": ENVIRONMENT,
+        "port": PORT
+    }
 
 # Create temporary directory for uploaded images
 UPLOAD_DIR = Path("temp_uploads")
@@ -163,5 +221,10 @@ async def cleanup():
         shutil.rmtree(UPLOAD_DIR)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    logger.info(f"Starting server on port {PORT}")
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=PORT,
+        reload=ENVIRONMENT == "development"
+    ) 
